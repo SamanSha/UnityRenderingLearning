@@ -7,11 +7,12 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Distortion Flow
-  m_Shader: {fileID: 4800000, guid: 7702a4ef03364a1498970299ba16fcd9, type: 3}
+  m_Name: Directional Flow
+  m_Shader: {fileID: 4800000, guid: de21953c5b01d9b45b0d19c6eb81633b, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _DUAL_GRID
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -25,10 +26,6 @@ Material:
     m_TexEnvs:
     - _BumpMap:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _DerivHeightMap:
-        m_Texture: {fileID: 2800000, guid: 958a48974ec286542b552c9b302e6c36, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -52,15 +49,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: b19e87a9d93145547bbaf6d3ff4268ae, type: 3}
+        m_Texture: {fileID: 2800000, guid: 958a48974ec286542b552c9b302e6c36, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: 77def8183dbe2c24f9b1ab6e3801a57d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -77,25 +70,25 @@ Material:
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _FlowOffset: 0
+    - _DualGrid: 1
     - _FlowStrength: 0.1
     - _GlossMapScale: 1
     - _Glossiness: 0.7
     - _GlossyReflections: 1
-    - _HeightScale: 0.1
-    - _HeightScaleModulated: 9
+    - _GridResolution: 30
+    - _HeightScale: 0.5
+    - _HeightScaleModulated: 10
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _Speed: 0.5
+    - _Speed: 1
     - _SrcBlend: 1
-    - _Tiling: 3
-    - _UJump: 0.25
+    - _Tiling: 1
+    - _TilingModulated: 50
     - _UVSec: 0
-    - _VJump: 0.25
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 0.30588236, g: 0.5137255, b: 0.6627451, a: 1}
