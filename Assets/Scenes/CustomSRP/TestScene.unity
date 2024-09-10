@@ -366,7 +366,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
-  material: {fileID: 2100000, guid: 86f1bfd32fa80d2448c7b7e5a5364dd0, type: 2}
+  material: {fileID: 2100000, guid: 89184b58de6692a42af83a7af221c9d8, type: 2}
 --- !u!4 &283111135
 Transform:
   m_ObjectHideFlags: 0
@@ -780,6 +780,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseColor: {r: 1, g: 1, b: 1, a: 1}
   cutoff: 1
+  metallic: 0
+  smoothness: 0.5
 --- !u!1 &1074900558
 GameObject:
   m_ObjectHideFlags: 0
@@ -1483,7 +1485,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 86f1bfd32fa80d2448c7b7e5a5364dd0, type: 2}
+  - {fileID: 2100000, guid: 89184b58de6692a42af83a7af221c9d8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1522,7 +1524,7 @@ Transform:
   m_GameObject: {fileID: 1726404001}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.836, y: -0.34388664, z: -1.382}
+  m_LocalPosition: {x: 0.83, y: 0.296, z: -2.93}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1661,7 +1663,7 @@ Light:
   serializedVersion: 10
   m_Type: 1
   m_Shape: 0
-  m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
+  m_Color: {r: 0, g: 1, b: 0.99158764, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
