@@ -17,8 +17,8 @@ Shader "Custom RP/Unlit"
 		#include "UnlitInput.hlsl"
 		ENDHLSL
 
-        Tags { "RenderType"="Opaque" }
-        LOD 100
+        //Tags { "RenderType"="Opaque" }
+        //LOD 100
 
         Pass {
             Blend [_SrcBlend] [_DstBlend]
