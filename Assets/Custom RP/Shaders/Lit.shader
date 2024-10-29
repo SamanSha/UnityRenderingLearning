@@ -66,6 +66,7 @@ Shader "Custom RP/Lit" {
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_instancing
             #pragma multi_compile _ _LIGHTS_PER_OBJECT
+            #pragma multi_compile _ _OTHER_PCF3 _OTHER_PCF5 _OTHER_PCF7
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
             #include "LitPass.hlsl"
