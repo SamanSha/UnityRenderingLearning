@@ -15,11 +15,20 @@ MonoBehaviour:
   useDynamicBatching: 0
   useGPUInstancing: 1
   useSRPBatcher: 1
+  useLightsPerObject: 1
   shadows:
     maxDistance: 100
+    distanceFade: 0.1
+    other:
+      atlasSize: 1024
+      filter: 0
     directional:
       atlasSize: 512
+      filter: 0
       cascadeCount: 4
       cascadeRatio1: 0.1
       cascadeRatio2: 0.25
       cascadeRatio3: 0.5
+      cascadeFade: 0.1
+      cascadeBlend: 0
+  postFXSettings: {fileID: 11400000, guid: bd283b2d1d087d04ba8f8c1846c01949, type: 2}
