@@ -29,6 +29,8 @@ public partial class CameraRender {
 
     bool useHDR;
 
+    static CameraSettings defaultCameraSettings = new CameraSettings();
+
     public void Render (
         ScriptableRenderContext context, Camera camera, bool allowHDR, 
         bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, 
@@ -37,6 +39,14 @@ public partial class CameraRender {
     ) {
         this.context = context;
         this.camera = camera;
+
+        var crpCamera = camera.GetComponent<CustomRenderPipelineCamera>();
+        CameraSettings cameraSettings =
+            crpCamera ? crpCamera.Settings : defaultCameraSettings;
+
+        if (cameraSettings.overridePostFX) {
+            postFXSettings = cameraSettings.postFXSettings;
+        }
 
         PrepareBuffer();
         PrepareForSceneWindow();
@@ -48,13 +58,18 @@ public partial class CameraRender {
         buffer.BeginSample(SampleName);
         ExecuteBuffer();
         lighting.Setup(
-            context, cullingResults, shadowSettings, useLightsPerObject
+            context, cullingResults, shadowSettings, useLightsPerObject, 
+            cameraSettings.maskLights ? cameraSettings.renderingLayerMask : -1
         );
-        postFXStack.Setup(context, camera, postFXSettings, useHDR, colorLUTResolution);
+        postFXStack.Setup(
+            context, camera, postFXSettings, useHDR, colorLUTResolution, 
+            cameraSettings.finalBlendMode    
+        );
         buffer.EndSample(SampleName);
         Setup();
         DrawVisibleGeometry(
-            useDynamicBatching, useGPUInstancing, useLightsPerObject
+            useDynamicBatching, useGPUInstancing, useLightsPerObject, 
+            cameraSettings.renderingLayerMask
         );
         DrawUnsupportedShaders();
         DrawGizmosBeforeFX();
@@ -107,7 +122,8 @@ public partial class CameraRender {
     }
 
     void DrawVisibleGeometry (
-        bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject
+        bool useDynamicBatching, bool useGPUInstancing, bool useLightsPerObject, 
+        int renderingLayerMask
     ) {
         PerObjectData lightsPerObjectFlags = useLightsPerObject ?
             PerObjectData.LightData | PerObjectData.LightIndices :
@@ -129,7 +145,9 @@ public partial class CameraRender {
                 lightsPerObjectFlags
         };
         drawingSettings.SetShaderPassName(1, litShaderTagId);
-        var filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+        var filteringSettings = new FilteringSettings(
+            RenderQueueRange.opaque, renderingLayerMask: (uint)renderingLayerMask
+        );
 
         context.DrawRenderers(
             cullingResults, ref drawingSettings, ref filteringSettings    

@@ -316,7 +316,9 @@ public class Shadows {
         var shadowSettings =
             new ShadowDrawingSettings(cullingResults, light.visibleLightIndex, 
             BatchCullingProjectionType.Orthographic
-        );
+        ) {
+            useRenderingLayerMaskTest = true
+        };
         int cascadeCount = settings.directional.cascadeCount;
         int tileOffset = index * cascadeCount;
         Vector3 ratios = settings.directional.CascadeRatios;
@@ -354,7 +356,9 @@ public class Shadows {
         var shadowSettings = new ShadowDrawingSettings(
             cullingResults, light.visibleLightIndex,
             BatchCullingProjectionType.Perspective
-        );
+        ) {
+            useRenderingLayerMaskTest = true
+        };
         cullingResults.ComputeSpotShadowMatricesAndCullingPrimitives(
             light.visibleLightIndex, out Matrix4x4 viewMatrix,
             out Matrix4x4 projectionMatrix, out ShadowSplitData splitData
@@ -381,7 +385,9 @@ public class Shadows {
         var shadowSettings = new ShadowDrawingSettings(
             cullingResults, light.visibleLightIndex,
             BatchCullingProjectionType.Perspective
-        );
+        ) { 
+            useRenderingLayerMaskTest = true
+        };
 
         float texelSize = 2f / tileSize;
         float filterSize = texelSize * ((float)settings.other.filter + 1f);
