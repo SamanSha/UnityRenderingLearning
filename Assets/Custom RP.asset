@@ -12,7 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc34c0f1f66f2834da783779016b6abd, type: 3}
   m_Name: Custom RP
   m_EditorClassIdentifier: 
-  allowHDR: 1
+  cameraBuffer:
+    allowHDR: 1
+    copyColor: 1
+    copyColorReflection: 0
+    copyDepth: 1
+    copyDepthReflection: 0
   useDynamicBatching: 0
   useGPUInstancing: 1
   useSRPBatcher: 1
@@ -34,3 +39,4 @@ MonoBehaviour:
       cascadeBlend: 0
   postFXSettings: {fileID: 11400000, guid: bd283b2d1d087d04ba8f8c1846c01949, type: 2}
   colorLUTResolution: 32
+  cameraRendererShader: {fileID: 4800000, guid: c54a338fe81a9d04c9d8ab1a58b66921, type: 3}

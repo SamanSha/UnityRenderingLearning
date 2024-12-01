@@ -34,7 +34,6 @@ Varyings DefaultPassVertex (uint vertexID : SV_VertexID) {
 
 TEXTURE2D(_PostFXSource);
 TEXTURE2D(_PostFXSource2);
-SAMPLER(sampler_linear_clamp);
 
 float4 GetSource(float2 screenUV) {
 	return SAMPLE_TEXTURE2D_LOD(_PostFXSource, sampler_linear_clamp, screenUV, 0);
