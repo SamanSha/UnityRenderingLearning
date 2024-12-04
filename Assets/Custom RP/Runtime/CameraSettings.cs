@@ -7,6 +7,8 @@ using UnityEngine.Rendering;
 [Serializable]
 public class CameraSettings {
 
+    public const float renderScaleMin = 0.1f, renderScaleMax = 2f;
+
     [Serializable]
     public struct FinalBlendMode {
 
@@ -28,4 +30,19 @@ public class CameraSettings {
     public bool maskLights = false;
 
     public bool copyColor = true, copyDepth = true;
+
+    public enum RenderScaleMode { Inherit, Multiply, Override }
+
+    public RenderScaleMode renderScaleMode = RenderScaleMode.Inherit;
+
+    [Range(renderScaleMin, renderScaleMax)]
+    public float renderScale = 1f;
+
+    public float GetRenderScale (float scale) {
+        return
+            renderScaleMode == RenderScaleMode.Inherit ? scale :
+            renderScaleMode == RenderScaleMode.Override ? renderScale :
+            scale * renderScale;
+    }
+
 }

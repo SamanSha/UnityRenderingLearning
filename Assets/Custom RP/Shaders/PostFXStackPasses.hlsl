@@ -295,4 +295,15 @@ float4 CopyPassFragment (Varyings input) : SV_TARGET {
 	return GetSource(input.screenUV);
 }
 
+bool _CopyBicubic;
+
+float4 FinalPassFragmentRescale (Varyings input) : SV_TARGET {
+	if (_CopyBicubic) {
+		return GetSourceBicubic(input.screenUV);
+	}
+	else {
+		return GetSource(input.screenUV);
+	}
+}
+
 #endif
