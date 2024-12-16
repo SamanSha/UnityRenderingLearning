@@ -38,6 +38,10 @@ public class CameraSettings {
     [Range(renderScaleMin, renderScaleMax)]
     public float renderScale = 1f;
 
+    public bool allowFXAA = false;
+
+    public bool keepAlpha = false;
+
     public float GetRenderScale (float scale) {
         return
             renderScaleMode == RenderScaleMode.Inherit ? scale :

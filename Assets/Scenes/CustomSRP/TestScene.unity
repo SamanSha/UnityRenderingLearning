@@ -363,6 +363,8 @@ MonoBehaviour:
     copyDepth: 1
     renderScaleMode: 2
     renderScale: 2
+    allowFXAA: 1
+    keepAlpha: 0
 --- !u!1 &122066047
 GameObject:
   m_ObjectHideFlags: 0
@@ -6804,6 +6806,8 @@ MonoBehaviour:
     copyDepth: 1
     renderScaleMode: 0
     renderScale: 1
+    allowFXAA: 0
+    keepAlpha: 0
 --- !u!81 &1515987013
 AudioListener:
   m_ObjectHideFlags: 0
