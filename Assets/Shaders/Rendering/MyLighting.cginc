@@ -1,3 +1,5 @@
+// Upgrade NOTE: replaced 'UNITY_PASS_TEXCUBE(unity_SpecCube1)' with 'UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1,unity_SpecCube0)'
+
 #if !defined(MY_LIGHTING_INCLUDED)
 #define MY_LIGHTING_INCLUDED
 
@@ -96,7 +98,23 @@ UnityLight CreateLight (Interpolators i) {
 	return light;
 }
 
-UnityIndirect CreateIndirectLight (Interpolators i) {
+float3 BoxProjection (
+	float3 direction, float3 position,
+	float4 cubemapPosition, float3 boxMin, float3 boxMax
+) {
+	#if UNITY_SPECCUBE_BOX_PROJECTION
+		UNITY_BRANCH
+		if (cubemapPosition.w > 0) {
+			float3 factors =
+				((direction > 0 ? boxMax : boxMin) - position) / direction;
+			float scalar = min(min(factors.x, factors.y), factors.z);
+			direction = direction * scalar + (position - cubemapPosition);
+		}
+	#endif
+	return direction;
+}
+
+UnityIndirect CreateIndirectLight (Interpolators i, float3 viewDir) {
 	UnityIndirect indirectLight;
 	indirectLight.diffuse = 0;
 	indirectLight.specular = 0;
@@ -107,6 +125,38 @@ UnityIndirect CreateIndirectLight (Interpolators i) {
 
     #if defined(FORWARD_BASE_PASS)
         indirectLight.diffuse += max(0, ShadeSH9(float4(i.normal, 1)));
+		float3 reflectionDir = reflect(-viewDir, i.normal);
+		Unity_GlossyEnvironmentData envData;
+		envData.roughness = 1 - _Smoothness;
+		envData.reflUVW = BoxProjection(
+			reflectionDir, i.worldPos,
+			unity_SpecCube0_ProbePosition,
+			unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax
+		);
+		float3 probe0 = Unity_GlossyEnvironment(
+			UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData
+		);
+		envData.reflUVW = BoxProjection(
+			reflectionDir, i.worldPos,
+			unity_SpecCube1_ProbePosition,
+			unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax
+		);
+		#if UNITY_SPECCUBE_BLENDING
+			float interpolator = unity_SpecCube0_BoxMin.w;
+			UNITY_BRANCH
+			if (interpolator < 0.99999) {
+				float3 probe1 = Unity_GlossyEnvironment(
+					UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0),
+					unity_SpecCube0_HDR, envData
+				);
+				indirectLight.specular = lerp(probe1, probe0, interpolator);
+			}
+			else {
+				indirectLight.specular = probe0;
+			}
+		#else
+			indirectLight.specular = probe0;
+		#endif
     #endif
 
 	return indirectLight;
@@ -150,7 +200,7 @@ float4 MyFragmentProgram (Interpolators i) : SV_TARGET {
         albedo, specularTint, 
         oneMinusReflectivity, _Smoothness, 
         i.normal, viewDir, 
-        CreateLight(i), CreateIndirectLight(i)
+        CreateLight(i), CreateIndirectLight(i, viewDir)
     );
 }
 
