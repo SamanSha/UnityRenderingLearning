@@ -35,6 +35,7 @@ Shader "Custom/My First Lighting Shader" {
     CGINCLUDE
 
 	#define BINORMAL_PER_FRAGMENT
+    #define FOG_DISTANCE
 
 	ENDCG
 
@@ -62,6 +63,7 @@ Shader "Custom/My First Lighting Shader" {
 			#pragma shader_feature _DETAIL_NORMAL_MAP
             #pragma multi_compile _ SHADOWS_SCREEN
             #pragma multi_compile _ VERTEXLIGHT_ON
+            #pragma multi_compile_fog
 
             #pragma vertex MyVertexProgram
             #pragma fragment MyFragmentProgram
@@ -93,6 +95,7 @@ Shader "Custom/My First Lighting Shader" {
             #pragma shader_feature _DETAIL_ALBEDO_MAP
 			#pragma shader_feature _DETAIL_NORMAL_MAP
             #pragma multi_compile_fwdadd_fullshadows
+            #pragma multi_compile_fog
 
 			#pragma vertex MyVertexProgram
 			#pragma fragment MyFragmentProgram
