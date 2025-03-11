@@ -94,7 +94,7 @@ public class MyLightingShaderGUI : ShaderGUI {
 
         MaterialProperty mainTex = FindProperty("_MainTex");
         editor.TexturePropertySingleLine(
-            MakeLabel(mainTex, "Albedo (RGB)"), mainTex, FindProperty("_Tint")
+            MakeLabel(mainTex, "Albedo (RGB)"), mainTex, FindProperty("_Color")
         );
 
         if (shouldShowAlphaCutoff) {
@@ -170,8 +170,15 @@ public class MyLightingShaderGUI : ShaderGUI {
             MakeLabel(map, "Emission (RGB)"), map, FindProperty("_Emission"),
             emissionConfig, false
         );
-        if (EditorGUI.EndChangeCheck() && tex != map.textureValue) {
-            SetKeyword("_EMISSION_MAP", map.textureValue);
+        if (EditorGUI.EndChangeCheck()) {
+            if (tex != map.textureValue) {
+                SetKeyword("_EMISSION_MAP", map.textureValue);
+            }
+
+            foreach (Material m in editor.targets) {
+                m.globalIlluminationFlags =
+                    MaterialGlobalIlluminationFlags.BakedEmissive;
+            }
         }
     }
 
@@ -200,7 +207,7 @@ public class MyLightingShaderGUI : ShaderGUI {
     }
 
     void DoAlphaCutoff () {
-        MaterialProperty slider = FindProperty("_AlphaCutoff");
+        MaterialProperty slider = FindProperty("_Cutoff");
         EditorGUI.indentLevel += 2;
         editor.ShaderProperty(slider, MakeLabel(slider));
         EditorGUI.indentLevel -= 2;
