@@ -8,6 +8,7 @@ UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
 sampler2D _CameraGBufferTexture0;
 sampler2D _CameraGBufferTexture1;
 sampler2D _CameraGBufferTexture2;
+sampler2D _CameraGBufferTexture4;
 
 float4 _LightColor, _LightDir, _LightPos;
 
@@ -47,6 +48,15 @@ Interpolators VertexProgram (VertexData v) {
 		_LightAsQuad
 	);
 	return i;
+}
+
+float GetShadowMaskAttenuation (float2 uv) {
+	float attenuation = 1;
+	#if defined (SHADOWS_SHADOWMASK)
+		float4 mask = tex2D(_CameraGBufferTexture4, uv);
+		attenuation = saturate(dot(mask, unity_OcclusionMaskSelector));
+	#endif
+	return attenuation;
 }
 
 UnityLight CreateLight (float2 uv, float3 worldPos, float viewZ) {
@@ -103,17 +113,25 @@ UnityLight CreateLight (float2 uv, float3 worldPos, float viewZ) {
 		#endif
 	#endif
 
+	#if defined(SHADOWS_SHADOWMASK)
+		shadowed = true;
+	#endif
+
 	if (shadowed) {
 		float shadowFadeDistance =
 			UnityComputeShadowFadeDistance(worldPos, viewZ);
 		float shadowFade = UnityComputeShadowFade(shadowFadeDistance);
-		shadowAttenuation = saturate(shadowAttenuation + shadowFade);
+		shadowAttenuation = UnityMixRealtimeAndBakedShadows(
+			shadowAttenuation, GetShadowMaskAttenuation(uv), shadowFade
+		);
 
 		#if defined(UNITY_FAST_COHERENT_DYNAMIC_BRANCHING) && defined(SHADOWS_SOFT)
-			UNITY_BRANCH
-			if (shadowFade > 0.99) {
-				shadowAttenuation = 1;
-			}
+			#if !defined(SHADOWS_SHADOWMASK)
+				UNITY_BRANCH
+				if (shadowFade > 0.99) {
+					shadowAttenuation = 1;
+				}
+			#endif
 		#endif
 	}
 
