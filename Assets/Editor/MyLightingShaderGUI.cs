@@ -87,6 +87,7 @@ public class MyLightingShaderGUI : ShaderGUI {
         DoRenderingMode();
         DoMain();
         DoSecondary();
+        DoAdvanced();
     }
 
     void DoMain () {
@@ -320,6 +321,12 @@ public class MyLightingShaderGUI : ShaderGUI {
 
     void RecordAction (string label) {
         editor.RegisterPropertyChangeUndo(label);
+    }
+
+    void DoAdvanced () {
+        GUILayout.Label("Advanced Options", EditorStyles.boldLabel);
+
+        editor.EnableInstancingField();
     }
 
 }
