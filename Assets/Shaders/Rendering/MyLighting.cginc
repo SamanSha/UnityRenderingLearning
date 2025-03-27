@@ -42,6 +42,17 @@ InterpolatorsVertex MyVertexProgram (VertexData v) {
 	UNITY_INITIALIZE_OUTPUT(InterpolatorsVertex, i);
 	UNITY_SETUP_INSTANCE_ID(v);
 	UNITY_TRANSFER_INSTANCE_ID(v, i);
+
+	i.uv.xy = TRANSFORM_TEX(v.uv, _MainTex);
+	i.uv.zw = TRANSFORM_TEX(v.uv, _DetailTex);
+
+	#if VERTEX_DISPLACEMENT
+		float displacement = tex2Dlod(_DisplacementMap, float4(i.uv.xy, 0, 0)).g;
+		displacement = (displacement - 0.5) * _DisplacementStrength;
+		v.normal = normalize(v.normal);
+		v.vertex.xyz += v.normal * displacement;
+	#endif
+
     i.pos = UnityObjectToClipPos(v.vertex);
     i.worldPos.xyz = mul(unity_ObjectToWorld, v.vertex);
 	#if FOG_DEPTH
@@ -55,9 +66,6 @@ InterpolatorsVertex MyVertexProgram (VertexData v) {
 		i.tangent = UnityObjectToWorldDir(v.tangent.xyz);
 		i.binormal = CreateBinormal(i.normal, i.tangent, v.tangent.w);
 	#endif
-
-    i.uv.xy = TRANSFORM_TEX(v.uv, _MainTex);
-	i.uv.zw = TRANSFORM_TEX(v.uv, _DetailTex);
 
 	#if defined(LIGHTMAP_ON) || ADDITIONAL_MASKED_DIRECTIONAL_SHADOWS
 		i.lightmapUV = v.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
