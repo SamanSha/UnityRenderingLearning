@@ -757,6 +757,7 @@ GameObject:
   - component: {fileID: 1847628332}
   - component: {fileID: 1847628335}
   - component: {fileID: 1847628336}
+  - component: {fileID: 1847628337}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -863,7 +864,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1847628331}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20c989b5a24a619489ec22b47b5c3239, type: 3}
   m_Name: 
@@ -872,6 +873,25 @@ MonoBehaviour:
   focusDistance: 10
   focusRange: 3
   bokehRadius: 4
+--- !u!114 &1847628337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1847628331}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c75f6440095982847ad6752978649b59, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fxaaShader: {fileID: 4800000, guid: 4ca8e19a546da4c4a8f4839a3493c812, type: 3}
+  luminanceSource: 2
+  contrastThreshold: 0.0833
+  relativeThreshold: 0.166
+  subpixelBlending: 0.75
+  lowQuality: 1
+  gammaBlending: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
