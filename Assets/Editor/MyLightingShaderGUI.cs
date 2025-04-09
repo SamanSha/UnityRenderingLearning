@@ -5,11 +5,7 @@ using UnityEngine.Rendering;
 using UnityEditor;
 using Codice.Client.BaseCommands;
 
-public class MyLightingShaderGUI : ShaderGUI {
-
-    Material target;
-    MaterialEditor editor;
-    MaterialProperty[] properties;
+public class MyLightingShaderGUI : MyBaseShaderGUI {
 
     bool shouldShowAlphaCutoff;
 
@@ -68,26 +64,10 @@ public class MyLightingShaderGUI : ShaderGUI {
     static ColorPickerHDRConfig emissionConfig =
         new ColorPickerHDRConfig(0f, 99f, 1f / 99f, 3f);
 
-    static GUIContent MakeLabel (string text, string tooltip = null) {
-        staticLabel.text = text;
-        staticLabel.tooltip = tooltip;
-        return staticLabel;
-    }
-
-    static GUIContent MakeLabel (
-        MaterialProperty property, string tooltip = null
-    ) {
-        staticLabel.text = property.displayName;
-        staticLabel.tooltip = tooltip;
-        return staticLabel;
-    }
-
     public override void OnGUI (
         MaterialEditor editor, MaterialProperty[] properties
     ) {
-        this.target = editor.target as Material;
-        this.editor = editor;
-        this.properties = properties;
+        base.OnGUI(editor, properties);
         DoRenderingMode();
         if (target.HasProperty("_TessellationUniform")) {
             DoTessellation();
@@ -320,31 +300,6 @@ public class MyLightingShaderGUI : ShaderGUI {
         if (EditorGUI.EndChangeCheck()) {
             SetKeyword("_DETAIL_NORMAL_MAP", map.textureValue);
         }
-    }
-
-    MaterialProperty FindProperty (string name) {
-        return FindProperty(name, properties);
-    }
-
-    void SetKeyword (string keyword, bool state) {
-        if (state) {
-            foreach (Material m in editor.targets) {
-                m.EnableKeyword(keyword);
-            }
-        }
-        else {
-            foreach (Material m in editor.targets) {
-                m.DisableKeyword(keyword);
-            }
-        }
-    }
-
-    bool IsKeywordEnabled (string keyword) {
-        return target.IsKeywordEnabled(keyword);
-    }
-
-    void RecordAction (string label) {
-        editor.RegisterPropertyChangeUndo(label);
     }
 
     void DoAdvanced () {

@@ -11,16 +11,6 @@
 	#define ALBEDO_FUNCTION GetAlbedo
 #endif
 
-struct VertexData {
-	UNITY_VERTEX_INPUT_INSTANCE_ID
-	float4 vertex : POSITION;
-    float3 normal : NORMAL;
-    float4 tangent : TANGENT;
-	float2 uv : TEXCOORD0;
-	float2 uv1 : TEXCOORD1;
-	float2 uv2 : TEXCOORD2;
-};
-
 void ComputeVertexLightColor (inout InterpolatorsVertex i) {
     #if defined(VERTEXLIGHT_ON)
         i.vertexLightColor = Shade4PointLights(
@@ -43,14 +33,16 @@ InterpolatorsVertex MyVertexProgram (VertexData v) {
 	UNITY_SETUP_INSTANCE_ID(v);
 	UNITY_TRANSFER_INSTANCE_ID(v, i);
 
-	i.uv.xy = TRANSFORM_TEX(v.uv, _MainTex);
-	i.uv.zw = TRANSFORM_TEX(v.uv, _DetailTex);
+	#if !defined(NO_DEFAULT_UV)
+		i.uv.xy = TRANSFORM_TEX(v.uv, _MainTex);
+		i.uv.zw = TRANSFORM_TEX(v.uv, _DetailTex);
 
-	#if VERTEX_DISPLACEMENT
-		float displacement = tex2Dlod(_DisplacementMap, float4(i.uv.xy, 0, 0)).g;
-		displacement = (displacement - 0.5) * _DisplacementStrength;
-		v.normal = normalize(v.normal);
-		v.vertex.xyz += v.normal * displacement;
+		#if VERTEX_DISPLACEMENT
+			float displacement = tex2Dlod(_DisplacementMap, float4(i.uv.xy, 0, 0)).g;
+			displacement = (displacement - 0.5) * _DisplacementStrength;
+			v.normal = normalize(v.normal);
+			v.vertex.xyz += v.normal * displacement;
+		#endif
 	#endif
 
     i.pos = UnityObjectToClipPos(v.vertex);
@@ -60,11 +52,13 @@ InterpolatorsVertex MyVertexProgram (VertexData v) {
 	#endif
     i.normal = UnityObjectToWorldNormal(v.normal);
     
-	#if defined(BINORMAL_PER_FRAGMENT)
-		i.tangent = float4(UnityObjectToWorldDir(v.tangent.xyz), v.tangent.w);
-	#else
-		i.tangent = UnityObjectToWorldDir(v.tangent.xyz);
-		i.binormal = CreateBinormal(i.normal, i.tangent, v.tangent.w);
+	#if REQUIRES_TANGENT_SPACE
+		#if defined(BINORMAL_PER_FRAGMENT)
+			i.tangent = float4(UnityObjectToWorldDir(v.tangent.xyz), v.tangent.w);
+		#else
+			i.tangent = UnityObjectToWorldDir(v.tangent.xyz);
+			i.binormal = CreateBinormal(i.normal, i.tangent, v.tangent.w);
+		#endif
 	#endif
 
 	#if defined(LIGHTMAP_ON) || ADDITIONAL_MASKED_DIRECTIONAL_SHADOWS
@@ -173,7 +167,9 @@ float3 BoxProjection (
 	return direction;
 }
 
-UnityIndirect CreateIndirectLight (Interpolators i, float3 viewDir) {
+UnityIndirect CreateIndirectLight (
+	Interpolators i, float3 viewDir, SurfaceData surface
+) {
 	UnityIndirect indirectLight;
 	indirectLight.diffuse = 0;
 	indirectLight.specular = 0;
@@ -240,7 +236,7 @@ UnityIndirect CreateIndirectLight (Interpolators i, float3 viewDir) {
 
 		float3 reflectionDir = reflect(-viewDir, i.normal);
 		Unity_GlossyEnvironmentData envData;
-		envData.roughness = 1 - GetSmoothness(i);
+		envData.roughness = 1 - surface.smoothness;
 		envData.reflUVW = BoxProjection(
 			reflectionDir, i.worldPos.xyz,
 			unity_SpecCube0_ProbePosition,
@@ -271,7 +267,7 @@ UnityIndirect CreateIndirectLight (Interpolators i, float3 viewDir) {
 			indirectLight.specular = probe0;
 		#endif
 
-		float occlusion = GetOcclusion(i);
+		float occlusion = surface.occlusion;
 		indirectLight.diffuse *= occlusion;
 		indirectLight.specular *= occlusion;
 
@@ -368,7 +364,7 @@ float2 ParallaxRaymarching (float2 uv, float2 viewDir) {
 }
 
 void ApplyParallax (inout Interpolators i) {
-	#if defined(_PARALLAX_MAP)
+	#if defined(_PARALLAX_MAP) && !defined(NO_DEFAULT_UV)
 		i.tangentViewDir = normalize(i.tangentViewDir);
 		#if !defined(PARALLAX_OFFSET_LIMITING)
 			#if !defined(PARALLAX_BIAS)
@@ -387,18 +383,22 @@ void ApplyParallax (inout Interpolators i) {
 }
 
 void InitializeFragmentNormal(inout Interpolators i) {
-	float3 tangentSpaceNormal = GetTangentSpaceNormal(i);
-    #if defined(BINORMAL_PER_FRAGMENT)
-		float3 binormal = CreateBinormal(i.normal, i.tangent.xyz, i.tangent.w);
-	#else
-		float3 binormal = i.binormal;
-	#endif
+	#if REQUIRES_TANGENT_SPACE
+		float3 tangentSpaceNormal = GetTangentSpaceNormal(i);
+		#if defined(BINORMAL_PER_FRAGMENT)
+			float3 binormal = CreateBinormal(i.normal, i.tangent.xyz, i.tangent.w);
+		#else
+			float3 binormal = i.binormal;
+		#endif
 
-    i.normal = normalize(
-		tangentSpaceNormal.x * i.tangent +
-		tangentSpaceNormal.y * binormal +
-		tangentSpaceNormal.z * i.normal
-	);
+		i.normal = normalize(
+			tangentSpaceNormal.x * i.tangent +
+			tangentSpaceNormal.y * binormal +
+			tangentSpaceNormal.z * i.normal
+		);
+	#else
+		i.normal = normalize(i.normal);
+	#endif
 }
 
 struct FragmentOutput {
@@ -424,19 +424,46 @@ FragmentOutput MyFragmentProgram (Interpolators i) {
 
 	ApplyParallax(i);
 
-	float alpha = GetAlpha(i);
+	InitializeFragmentNormal(i);
+
+	SurfaceData surface;
+	#if defined(SURFACE_FUNCTION)
+		surface.normal = i.normal;
+		surface.albedo = 1;
+		surface.alpha = 1;
+		surface.emission = 0;
+		surface.metallic = 0;
+		surface.occlusion = 1;
+		surface.smoothness = 0.5;
+
+		SurfaceParameters sp;
+		sp.normal = i.normal;
+		sp.position = i.worldPos.xyz;
+		sp.uv = UV_FUNCTION(i);
+
+		SURFACE_FUNCTION(surface, sp);
+	#else
+		surface.normal = i.normal;
+		surface.albedo = ALBEDO_FUNCTION(i);
+		surface.alpha = GetAlpha(i);
+		surface.emission = GetEmission(i);
+		surface.metallic = GetMetallic(i);
+		surface.occlusion = GetOcclusion(i);
+		surface.smoothness = GetSmoothness(i);
+	#endif
+	i.normal = surface.normal;
+
+	float alpha = surface.alpha;
 	#if defined(_RENDERING_CUTOUT)
 		clip(alpha - _Cutoff);
 	#endif
-
-    InitializeFragmentNormal(i);
 
     float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos.xyz);
 
     float3 specularTint;
     float oneMinusReflectivity;
     float3 albedo = DiffuseAndSpecularFromMetallic(
-		ALBEDO_FUNCTION(i), GetMetallic(i), specularTint, oneMinusReflectivity
+		surface.albedo, surface.metallic, specularTint, oneMinusReflectivity
 	);
 	#if defined(_RENDERING_TRANSPARENT)
 		albedo *= alpha;
@@ -445,11 +472,11 @@ FragmentOutput MyFragmentProgram (Interpolators i) {
 
     float4 color = UNITY_BRDF_PBS(
         albedo, specularTint, 
-        oneMinusReflectivity, GetSmoothness(i), 
+        oneMinusReflectivity, surface.smoothness, 
         i.normal, viewDir, 
-        CreateLight(i), CreateIndirectLight(i, viewDir)
+        CreateLight(i), CreateIndirectLight(i, viewDir, surface)
     );
-	color.rgb += GetEmission(i);
+	color.rgb += surface.emission;
 	#if defined(_RENDERING_FADE) || defined(_RENDERING_TRANSPARENT)
 		color.a = alpha;
 	#endif
@@ -460,9 +487,9 @@ FragmentOutput MyFragmentProgram (Interpolators i) {
 			color.rgb = exp2(-color.rgb);
 		#endif
 		output.gBuffer0.rgb = albedo;
-		output.gBuffer0.a = GetOcclusion(i);
+		output.gBuffer0.a = surface.occlusion;
 		output.gBuffer1.rgb = specularTint;
-		output.gBuffer1.a = GetSmoothness(i);
+		output.gBuffer1.a = surface.smoothness;
 		output.gBuffer2 = float4(i.normal * 0.5 + 0.5, 1);
 		output.gBuffer3 = color;
 
